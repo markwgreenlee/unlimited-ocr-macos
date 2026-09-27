@@ -94,7 +94,13 @@ Install root: $ROOT
 
 Next steps:
   ./run-ocr.sh <image|pdf|directory> [--out DIR]     # see --help
-  export UNLIMITED_OCR_ROOT="$ROOT"                  # for the Claude Science skill
+
+  # Shell convenience (does NOT reach a Claude Science kernel — see README step 3):
+  export UNLIMITED_OCR_ROOT="$ROOT"
+
+  # As a Claude Science skill: grant the agent access to this directory, then ask it to
+  # publish $ROOT/skill/SKILL.md + kernel.py as a skill. See README "Use as a Claude
+  # Science skill".
 EOF
 else
     die "run produced an empty result.md — see README 'The MPS bug' and try --device cpu"

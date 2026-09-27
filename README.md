@@ -78,13 +78,37 @@ token is required: `<image>document parsing.`, `<image>Multi page parsing.`,
 
 ## Use as a Claude Science skill
 
-`skill/` contains `SKILL.md` and a `kernel.py` sidecar. The sidecar resolves the install
-directory from `$UNLIMITED_OCR_ROOT`, falling back to `~/Unlimited-OCR`.
+`skill/` contains `SKILL.md` and a `kernel.py` sidecar. Three steps, and the first is the
+one people miss:
 
-Ask Claude Science to install it — something like *"create a skill from the SKILL.md and
-kernel.py in ~/Unlimited-OCR/skill and publish it"*. The agent writes both files with
-`host.skills.edit` and then `host.skills.publish`. After that, "OCR this scan and summarize
-it" works in one step, and these land in its Python kernel:
+**1. Grant Claude Science access to this directory.** Its kernels are sandboxed and cannot
+reach arbitrary paths in your home directory. The skill launches `./.venv/bin/python` as a
+subprocess and reads `./model`, so without a grant the helpers fail at the first call. Ask
+the agent for it — *"request access to ~/Unlimited-OCR"* — and approve the read-write
+prompt, or add the folder in the host-access settings.
+
+**2. Create the skill.** Ask the agent:
+
+> Read `~/Unlimited-OCR/skill/SKILL.md` and `~/Unlimited-OCR/skill/kernel.py` and publish
+> them as a skill named `unlimited-ocr`.
+
+It writes both files with `host.skills.edit` and publishes with `host.skills.publish`. You
+can also paste the two files' contents into the conversation instead, if you'd rather not
+grant access before the skill exists — but step 1 is still required for the skill to *run*.
+If your organisation has custom skills turned off, publishing is refused; in that case the
+agent can still `exec(open(".../skill/kernel.py").read())` to get the helpers for one
+session, or just drive `run-ocr.sh` through the shell.
+
+**3. Tell it where the install lives — unless you cloned to the default.** The sidecar
+resolves the root as: an explicit `root=` argument, then `$UNLIMITED_OCR_ROOT`, then
+`~/Unlimited-OCR`. Note that an agent kernel does **not** inherit your login shell's
+environment (it gets a minimal one), so `export UNLIMITED_OCR_ROOT=...` in your terminal
+does not reach it. If you cloned somewhere other than `~/Unlimited-OCR`, either pass
+`root="/path/to/install"` to the helpers or have the agent set
+`os.environ["UNLIMITED_OCR_ROOT"]` once per session.
+
+Verify with `ocr_status()` — it should report `ok: True` and `device: "mps"`. After that,
+"OCR this scan and summarize it" works in one step, and these land in the Python kernel:
 
 | function | purpose |
 |---|---|
