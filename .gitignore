@@ -1,0 +1,11 @@
+.venv/
+model/
+out/
+ocr_out/
+__pycache__/
+*.pyc
+.DS_Store
+samples/*.png
+samples/*.pdf
+pip.conf
+cacert-proxy.pem
